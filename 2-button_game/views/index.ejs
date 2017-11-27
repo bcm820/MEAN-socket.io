@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>The Epic Button</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="style.css" rel="stylesheet">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script type ="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+</head>
+
+<script type=text/javascript>
+
+$(document).ready(() => {
+
+    // on page load, notify server to update count
+    const socket = io.connect();
+    socket.emit('load');
+
+    // buttons
+    $('.epic').click(() => { socket.emit('epic'); });
+    $('.reset').click(() => { socket.emit('reset'); });
+
+    // server sends updated count
+    socket.on('update', (print) => {
+        let count = print.data;
+        $('big').text(count);
+    });
+
+});
+
+</script>
+
+<body>
+
+<new-row>
+<col-3></col-3>
+
+<col-6>
+    <header class=text-center style="margin: 50% 20%">
+        <h1><big>&nbsp;</big></h1>
+        <h3>Push the button to update the count!</h3>
+        <br>
+        <p><button class='epic btn-primary'>The Epic Button</button></p>
+        <p><button class='reset btn-danger'>Reset</button></p>
+    </header>
+</col-6>
+
+<col-3></col-3>
+</new-row>
+</body>
+</html>
