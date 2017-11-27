@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Survey Form</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="style.css" rel="stylesheet">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script type ="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+
+<script type=text/javascript>
+
+$(document).ready(() => {
+
+    const socket = io.connect();
+
+    $('article').hide();
+
+    $('button').click(() => {
+        let client = {
+            name: $('.name').val(),
+            dojo: $('.dojo').val(),
+            stack: $('.stack').val(),
+            comment: $('.comment').val()
+        };
+        socket.emit('post', {data:client});
+    });
+
+    socket.on('print', (print) => {
+        let client = print.data;
+        $('.c_name').append(client.name);
+        $('.c_dojo').append(client.dojo);
+        $('.c_stack').append(client.stack);
+        $('.c_comment').append(client.comment);
+    });
+
+    socket.on('random_nums', (print) => {
+        let random = print.data;
+        $('.c_number').append(random.number);
+        $('.c_id').append(random.id);
+        $('article').fadeIn();
+    });
+
+});
+
+</script>
+
+</head>
+<body>
+
+<header class=text-center>
+    <h2>Socket.io Survey Form</h2>
+    <p>Fill this form out!</p>
+</header>
+
+<new-row>
+<col-3></col-3>
+
+
+<col-3>
+    <form>
+        <div>Your Name: <input type=text class=name></div>
+        <div>
+            Dojo Location:
+            <select class=dojo>
+                <option value='Mountain View'>Mountain View</option>
+                <option value='Seattle'>Seattle</option>
+                <option value='Los Angeles'>Los Angeles</option>
+                <option value='Dallas'>Dallas</option>
+                <option value='Washington DC'>Washington DC</option>
+                <option value='Chicago'>Chicago</option>
+                <option value='Tulsa'>Tulsa</option>
+            </select>
+        </div>
+        <div>
+            Favorite Stack:
+            <select class=stack>
+                <option value='.NET/C#'>.NET/C#</option>
+                <option value='Ruby on Rails'>Ruby on Rails</option>
+                <option value='Python'>Python</option>
+                <option value='MEAN'>MEAN</option>
+                <option value='Java/Spring'>Java/Spring</option>
+                <option value='iOS Swift'>iOS Swift</option>
+            </select>
+        </div>
+        <div>Comment (optional):<textarea rows=5 class=comment></textarea></div>
+    </form>
+    <div class=text-right><button>Send Response</button></div>
+</col-3>
+
+<col-4>
+    <article>
+        <header>Thank you, <span class=c_name></span>!</header>
+        <div>
+            Here's your info:<br>
+            Name: <span class=c_name></span><br>
+            Dojo: <span class=c_dojo></span><br>
+            Favorite Stack: <span class=c_stack></span><br>
+            Comment: <span class=c_comment></span>
+        </div>
+        <footer>
+            <small>
+                Socket ID <span class=c_id></span><br>
+                Lucky #<span class=c_number></span>
+            </small>
+        </footer>
+    </article>
+</col-4>
+
+
+<col-1></col-1>
+<col-1></col-1>
+</new-row>
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Socket.IO Demo</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="style.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>    
+    <script type ="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+    <script type ="text/javascript">
+
+        // on page load, socket connection is established with server
+        $(document).ready(() => {
+            const socket  = io.connect();
+
+            // client's button 'click' sends message to server
+            $('button').click(() => {
+                socket.emit('click', {message: 'client to server'});
+            });
+
+            // client socket listens for 'response' from server
+            socket.on('response', (data) => {
+                console.log(data.msg); // message received
+            });
+
+            socket.on('relay', (data) => {
+                console.log(data.msg); // message received
+            });
+
+            socket.on('broadcast', (data) => {
+                console.log(data.msg); // message received
+            });
+
+        })
+    </script>
+</head>
+<body>
+
+<new-row>
+    
+    <col-3></col-3>
+    <col-6 class=text-center style="margin: 30% 20%">
+        <button>CLICK ME</button>
+    </col-6>
+    <col-3></col-3>
+
+</new-row>
+
+</body>
+</html>
