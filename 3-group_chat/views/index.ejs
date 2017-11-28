@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>socket.io chat</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="style.css" rel="stylesheet">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script type ="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+</head>
+
+<script type=text/javascript>
+
+$(document).ready(() => {
+    
+    const socket = io.connect();
+    let current_user;
+
+    // GET_USERS & GET_MSGS =>
+    socket.emit('get_users');
+    socket.emit('get_msgs');
+
+    // => LIST_USERS
+    socket.on('list_users', (users) => {
+        for(u of users){
+            let span = `<span class=${u.id}>${u.name}</span>`
+            $('.users').prepend(span);
+        }
+    });
+
+    // => LIST_MSGS
+    socket.on('list_msgs', (chat) => {
+        for(c of chat){
+            let m = `<span><strong>${c.user}</strong>: ${c.message}</span><br>`
+            $('.chat').append(m);
+        }
+    });
+
+    // (JOIN) -> ADD_USER =>
+    $('.join').keypress((e) => {
+        if (e.keyCode === 13){
+            e.preventDefault();
+            if($('.join').val().length < 3){
+                $('.join-warn').css('display', 'block');
+            }
+            else {
+                $('.join-warn').css('display', 'none');
+                let username = $('.join').val();
+                $('.join').hide()
+                $('.join-info').hide()
+                $('.message').show()
+                current_user = username;
+                let user = {name:username};
+                socket.emit('add_user', user);
+            }
+        }
+    });
+
+    // => USER_JOIN
+    socket.on('user_join', (u) => {
+        let span = `<span class=${u.id}>${u.name}</span>`
+        $('.users').prepend(span);
+    });
+
+    // (CLOSE TAB) -> USER_LEFT =>
+    $(window).on('beforeunload', () => {
+        let user = {id:socket.id}; // hmm...
+        socket.emit('user_left', user);
+    });
+
+    // => REMOVE_USER
+    socket.on('remove_user', (u) => {
+        $(`.${u.id}`).remove();
+    });
+
+    // (MESSAGE) -> ADD_MSG =>
+    $('.message').keypress((e) => {
+        if (e.keyCode === 13){
+            e.preventDefault();
+            if($('.message').val().length !== 0){
+                let text = $('.message').val();
+                let message = {
+                    message:text,
+                    user:current_user
+                };
+                $('.message').val('');
+                socket.emit('add_msg', message);
+            }
+        }
+    });
+
+    // => PRINT_MSG
+    socket.on('print_msg', (t) => {
+        let msg = `<span><strong>${t.user}</strong>: ${t.message}</span><br>`
+        $('.chat').append(msg);
+    });
+
+});
+
+</script>
+
+<body>
+
+<new-row>
+
+<col-3>
+    <article>
+        <header><strong>Users Online</strong></header>
+        <list-group class=users></list-group>
+    </article>
+    <form>
+        <div><input type=text class=join placeholder="Enter username"></div>
+    </form>
+    <alert-info class='join-info text-center'>
+        <strong>Enter your username<br>
+        to join the chat!</strong>
+    </alert-info>
+    <alert-danger class='join-warn text-center' style=display:none>
+        <strong>Your username must be<br>
+        at least 3 characters long!</strong>
+    </alert-danger>
+</col-3>
+
+<col-8>
+    <article>
+        <header><strong>Chat Window</strong></header>
+        <div class=chat style=height:300px></div>
+    </article>
+    <form>
+        <div><input type=text class=message placeholder="Send a message" style=display:none></div>
+    </form>
+</col-8>
+
+</new-row>
+</body>
+</html>

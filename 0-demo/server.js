@@ -26,10 +26,13 @@ io.sockets.on('connection', (socket) => {
     socket.on('click', (data) => {
 
         console.log(data.message); // message received
+        
         // server emits 'response' to client
         socket.emit('response', {msg: 'server to client'});
+        
         // broadcast to all except client who clicked
         socket.broadcast.emit('relay', {msg: 'only for the others'});
+        
         // broadcast to all clients
         io.emit('broadcast', {msg: 'everyone sees this'});
 
