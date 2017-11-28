@@ -12,17 +12,11 @@ module.exports = function route(app, server, io){
         
 
         // => GET_USERS => LIST_USERS
-        // emit users to new client
-        socket.on('get_users', () => {
+        // emit user list to new client
+        socket.on('request_content', () => {
             socket.emit('list_users', users);
-        });
-
-        // => GET_MSGS => LIST_MSGS
-        // emit messages to new client
-        socket.on('get_msgs', () => {
             socket.emit('list_msgs', chat);
         });
-        
 
         // => ADD_USER => USER_JOIN
         // broadcast user to page
@@ -31,7 +25,6 @@ module.exports = function route(app, server, io){
             users.push(user);
             io.emit('user_join', user);
         });
-
 
         // => USER_LEFT => REMOVE_USER
         socket.on('user_left', (user) => {
@@ -42,7 +35,6 @@ module.exports = function route(app, server, io){
             }
             io.emit('remove_user', user);
         });
-
 
         // => ADD_MSG => PRINT_MSG
         socket.on('add_msg', (message) => {

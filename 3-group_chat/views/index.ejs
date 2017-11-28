@@ -5,52 +5,69 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="style.css" rel="stylesheet">
+<link href="chat.css" rel="stylesheet">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<script type ="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
 </head>
 
+<!-- <style>*{outline:1px solid red;}</style> -->
+
 <script type=text/javascript>
+
+function textWrap(str, len, br) {
+    if (str.length > len) {
+        let p = len;
+        while (p > 0 && str[p] !== ' '){ p -= 1; }
+        if (p > 0) {
+            var left = str.substring(0, p);
+            var right = str.substring(p + 1);
+            return left + br + textWrap(right, len, br);
+        }
+    }
+    return str;
+}
 
 $(document).ready(() => {
     
     const socket = io.connect();
     let current_user;
 
-    // GET_USERS & GET_MSGS =>
-    socket.emit('get_users');
-    socket.emit('get_msgs');
+    // Request user list and messages
+    socket.emit('request_content');
 
-    // => LIST_USERS
+    // Print list of users
     socket.on('list_users', (users) => {
         for(u of users){
-            let span = `<span class=${u.id}>${u.name}</span>`
+            let span = `<span class=${u.id}>${u.name}<br></span>`
             $('.users').prepend(span);
         }
     });
 
-    // => LIST_MSGS
+    // Print list of messages
     socket.on('list_msgs', (chat) => {
         for(c of chat){
-            let m = `<span><strong>${c.user}</strong>: ${c.message}</span><br>`
+            let m = `<span><strong>${c.user}</strong>: ${c.message}<br></span>`
             $('.chat').append(m);
         }
     });
 
-    // (JOIN) -> ADD_USER =>
+    // When visitor enters username, validate
     $('.join').keypress((e) => {
         if (e.keyCode === 13){
             e.preventDefault();
             if($('.join').val().length < 3){
+                $('.join-info').hide();
                 $('.join-warn').css('display', 'block');
             }
-            else {
-                $('.join-warn').css('display', 'none');
+            else { // If valid, request access and open chat
                 let username = $('.join').val();
-                $('.join').hide()
-                $('.join-info').hide()
-                $('.message').show()
-                current_user = username;
                 let user = {name:username};
+                current_user = username;
+                $('.join-warn').css('display', 'none');
+                $('.join').fadeOut();
+                $('.join-info').fadeOut();
+                $('.message').attr('disabled', false);
+                $('.blur').removeClass('blur');
                 socket.emit('add_user', user);
             }
         }
@@ -58,7 +75,7 @@ $(document).ready(() => {
 
     // => USER_JOIN
     socket.on('user_join', (u) => {
-        let span = `<span class=${u.id}>${u.name}</span>`
+        let span = `<span class=${u.id}>${u.name}<br></span>`
         $('.users').prepend(span);
     });
 
@@ -79,6 +96,7 @@ $(document).ready(() => {
             e.preventDefault();
             if($('.message').val().length !== 0){
                 let text = $('.message').val();
+                text = textWrap(text, 45 - current_user.length, '<br>')
                 let message = {
                     message:text,
                     user:current_user
@@ -91,7 +109,7 @@ $(document).ready(() => {
 
     // => PRINT_MSG
     socket.on('print_msg', (t) => {
-        let msg = `<span><strong>${t.user}</strong>: ${t.message}</span><br>`
+        let msg = `<span><strong>${t.user}</strong>: ${t.message}<br></span>`
         $('.chat').append(msg);
     });
 
@@ -100,37 +118,52 @@ $(document).ready(() => {
 </script>
 
 <body>
+<new-row>
+    <col-3></col-3>
+    <col-6>
+        <header class=text-center>
+            <h1>socket.io chatbox</h1>
+            <h4>join the fun</h4>
+        </header>
+    </col-6>
+    <col-3></col-3>
+</new-row>
 
 <new-row>
+<col-1></col-1>
 
-<col-3>
+<col-4>
+    <col-6></col-6>
+    <col-6>
+            <article>
+                <header class=text-center><strong>Users</strong></header>
+                <div class='users text-center blur'></div>
+            </article>
+            <form>
+                <div><input type=text class=join placeholder="Enter username" maxlength=20></div>
+            </form>
+            <alert-info class='join-info text-center'>
+                <small><strong>Enter your username<br>
+                to join the chat!</strong></small>
+            </alert-info>
+            <alert-danger class='join-warn text-center'>
+                <small><strong>Your username must be<br>
+                at least 3 characters long!</strong></small>
+            </alert-danger>
+    <col-6>
+</col-4>
+
+<col-4>
     <article>
-        <header><strong>Users Online</strong></header>
-        <list-group class=users></list-group>
+        <header><strong>Chatbox</strong></header>
+        <div class='chat blur'></div>
     </article>
     <form>
-        <div><input type=text class=join placeholder="Enter username"></div>
+        <div><input type=text class=message placeholder="Type here..." disabled></div>
     </form>
-    <alert-info class='join-info text-center'>
-        <strong>Enter your username<br>
-        to join the chat!</strong>
-    </alert-info>
-    <alert-danger class='join-warn text-center' style=display:none>
-        <strong>Your username must be<br>
-        at least 3 characters long!</strong>
-    </alert-danger>
-</col-3>
+</col-4>
 
-<col-8>
-    <article>
-        <header><strong>Chat Window</strong></header>
-        <div class=chat style=height:300px></div>
-    </article>
-    <form>
-        <div><input type=text class=message placeholder="Send a message" style=display:none></div>
-    </form>
-</col-8>
-
+<col-1></col-1><col-1></col-1>
 </new-row>
 </body>
 </html>
